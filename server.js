@@ -10,6 +10,10 @@ const app = express(); // ✅ This should come BEFORE routes
 
 app.use(cors());
 app.use(express.json());
+app.get('/', (req, res) => {
+  res.send('Backend is working!');
+});
+
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
