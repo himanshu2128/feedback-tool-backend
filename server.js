@@ -4,23 +4,28 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-dotenv.config();
+dotenv.config(); // Load .env variables
 
-const app = express(); // ✅ This should come BEFORE routes
+const app = express(); // Express app initialized before routes
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+
+// Test route
 app.get('/', (req, res) => {
-  res.send('Backend is working!');
+  res.send('✅ Backend is working!');
 });
 
-
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+// ✅ MongoDB connection using environment variable
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB connection error:", err));
 
-// Feedback schema
+// Schema & model
 const Feedback = mongoose.model("Feedback", {
   message: String,
   timestamp: {
@@ -29,7 +34,7 @@ const Feedback = mongoose.model("Feedback", {
   },
 });
 
-// Routes
+// Feedback submit route
 app.post("/api/feedback", async (req, res) => {
   const { message } = req.body;
   const feedback = new Feedback({ message });
@@ -37,7 +42,7 @@ app.post("/api/feedback", async (req, res) => {
   res.json({ success: true });
 });
 
-// ✅ Fix here — move this after `app = express()` declaration
+// Admin login route
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
   if (password === process.env.ADMIN_PASSWORD) {
