@@ -11,37 +11,31 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
-// ✅ Enable CORS
-app.use(cors()); // Allow cross-origin requ
 
-// Middleware
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
+// ✅ Test route
 app.get("/", (req, res) => {
   res.send("✅ Backend is working!");
 });
 
-// Check for MongoDB URI
+// ✅ MongoDB connection
 const MONGO_URI = process.env.MONGODB_URI;
 if (!MONGO_URI) {
   console.error("❌ MONGODB_URI is not defined in environment variables.");
-  process.exit(1); // Exit if not set
+  process.exit(1);
 }
 
-// MongoDB Connection
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch(err => {
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
 
-// Feedback Schema & Model
+// ✅ Feedback Schema & Model
 const Feedback = mongoose.model("Feedback", {
   message: {
     type: String,
@@ -54,7 +48,7 @@ const Feedback = mongoose.model("Feedback", {
   },
 });
 
-// POST /api/feedback - Submit feedback
+// ✅ POST /api/feedback - Submit feedback
 app.post("/api/feedback", async (req, res) => {
   try {
     const { message } = req.body;
@@ -71,7 +65,17 @@ app.post("/api/feedback", async (req, res) => {
   }
 });
 
-// POST /api/admin/login - Admin login
+// ✅ GET /api/feedback - Optional: Get all feedback
+app.get("/api/feedback", async (req, res) => {
+  try {
+    const feedbackList = await Feedback.find().sort({ timestamp: -1 });
+    res.json({ feedbackList });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch feedback" });
+  }
+});
+
+// ✅ POST /api/admin/login - Admin login
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
 
@@ -85,7 +89,7 @@ app.post("/api/admin/login", (req, res) => {
   }
 });
 
-// Server listen
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
