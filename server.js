@@ -1,61 +1,92 @@
+// server.js
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-dotenv.config(); // Load .env variables
+// Load environment variables from .env file
+dotenv.config();
 
-const app = express(); // Express app initialized before routes
+// Initialize Express app
+const app = express();
+// ✅ Enable CORS
+app.use(cors()); // Allow cross-origin requ
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // Test route
-app.get('/', (req, res) => {
-  res.send('✅ Backend is working!');
+app.get("/", (req, res) => {
+  res.send("✅ Backend is working!");
 });
 
-// ✅ MongoDB connection using environment variable
-mongoose.connect(process.env.MONGODB_URI, {
+// Check for MongoDB URI
+const MONGO_URI = process.env.MONGODB_URI;
+if (!MONGO_URI) {
+  console.error("❌ MONGODB_URI is not defined in environment variables.");
+  process.exit(1); // Exit if not set
+}
+
+// MongoDB Connection
+mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
+  .then(() => console.log("✅ MongoDB connected successfully"))
+  .catch(err => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
+  });
 
-// Schema & model
+// Feedback Schema & Model
 const Feedback = mongoose.model("Feedback", {
-  message: String,
+  message: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   timestamp: {
     type: Date,
     default: Date.now,
   },
 });
 
-// Feedback submit route
+// POST /api/feedback - Submit feedback
 app.post("/api/feedback", async (req, res) => {
-  const { message } = req.body;
-  const feedback = new Feedback({ message });
-  await feedback.save();
-  res.json({ success: true });
+  try {
+    const { message } = req.body;
+    if (!message || message.trim() === "") {
+      return res.status(400).json({ success: false, error: "Message is required" });
+    }
+
+    const feedback = new Feedback({ message });
+    await feedback.save();
+    res.json({ success: true });
+  } catch (error) {
+    console.error("❌ Error saving feedback:", error.message);
+    res.status(500).json({ success: false, error: "Failed to save feedback" });
+  }
 });
 
-// Admin login route
+// POST /api/admin/login - Admin login
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
+
   if (password === process.env.ADMIN_PASSWORD) {
     const token = jwt.sign({ isAdmin: true }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    return res.json({ token });
+    res.json({ token });
   } else {
-    return res.status(401).json({ error: "Invalid password" });
+    res.status(401).json({ error: "Invalid admin password" });
   }
 });
 
-// Start server
-app.listen(5000, () => {
-  console.log("✅ Server is running on http://localhost:5000");
+// Server listen
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on http://localhost:${PORT}`);
 });
