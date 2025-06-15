@@ -1,5 +1,3 @@
-// server.js
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -22,7 +20,8 @@ app.get("/", (req, res) => {
 });
 
 // ✅ MongoDB connection
-const MONGO_URI = process.env.MONGODB_URI;
+const MONGO_URI = process.env.MONGO_URI;
+
 if (!MONGO_URI) {
   console.error("❌ MONGODB_URI is not defined in environment variables.");
   process.exit(1);
@@ -65,7 +64,7 @@ app.post("/api/feedback", async (req, res) => {
   }
 });
 
-// ✅ GET /api/feedback - Optional: Get all feedback
+// ✅ GET /api/feedback - View all feedback (optional)
 app.get("/api/feedback", async (req, res) => {
   try {
     const feedbackList = await Feedback.find().sort({ timestamp: -1 });
