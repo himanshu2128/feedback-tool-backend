@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const feedbackSchema = new mongoose.Schema({
   message: {
     type: String,
-    required: true,
+    required: true
   },
-  submittedAt: {
+  createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   }
 });
 
