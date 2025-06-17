@@ -20,7 +20,8 @@ app.get("/", (req, res) => {
 });
 
 // ✅ MongoDB connection using environment variable
-const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(process.env.MONGODB_URI);
+
 
 if (!MONGO_URI) {
   console.error("❌ MONGO_URI is not defined in .env file.");
