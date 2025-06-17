@@ -4,30 +4,28 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-// ✅ Load environment variables from .env file
+// ✅ Load environment variables
 dotenv.config();
 
 // ✅ Initialize Express app
 const app = express();
-
-// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
-// ✅ Basic health check route
+// ✅ Basic health check
 app.get("/", (req, res) => {
   res.send("✅ Backend is working!");
 });
 
-// ✅ MongoDB connection using environment variable
-mongoose.connect(process.env.MONGODB_URI);
-
+// ✅ Read MONGO_URI from .env
+const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error("❌ MONGO_URI is not defined in .env file.");
+  console.error("❌ MONGO_URI is not defined in environment variables");
   process.exit(1);
 }
 
+// ✅ MongoDB connection
 mongoose
   .connect(MONGO_URI, {
     useNewUrlParser: true,
@@ -39,7 +37,7 @@ mongoose
     process.exit(1);
   });
 
-// ✅ Feedback schema
+// ✅ Feedback schema & model
 const Feedback = mongoose.model("Feedback", {
   message: {
     type: String,
@@ -52,15 +50,13 @@ const Feedback = mongoose.model("Feedback", {
   },
 });
 
-// ✅ POST /api/feedback - Submit feedback
+// ✅ POST /api/feedback
 app.post("/api/feedback", async (req, res) => {
   try {
     const { message } = req.body;
 
     if (!message || message.trim() === "") {
-      return res
-        .status(400)
-        .json({ success: false, error: "Message is required" });
+      return res.status(400).json({ success: false, error: "Message is required" });
     }
 
     const feedback = new Feedback({ message });
@@ -69,36 +65,33 @@ app.post("/api/feedback", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error("❌ Error saving feedback:", error.message);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to save feedback" });
+    res.status(500).json({ success: false, error: "Failed to save feedback" });
   }
 });
 
-// ✅ GET /api/feedback - View all feedback
+// ✅ GET /api/feedback
 app.get("/api/feedback", async (req, res) => {
   try {
     const feedbackList = await Feedback.find().sort({ createdAt: -1 });
     res.json({ success: true, data: feedbackList });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to fetch feedback" });
+    res.status(500).json({ success: false, error: "Failed to fetch feedback" });
   }
 });
 
-// ✅ Admin login route
+// ✅ Admin login
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
 
-  if (!process.env.ADMIN_PASSWORD || !process.env.JWT_SECRET) {
-    return res
-      .status(500)
-      .json({ error: "Server not properly configured for admin login." });
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+  const JWT_SECRET = process.env.JWT_SECRET;
+
+  if (!ADMIN_PASSWORD || !JWT_SECRET) {
+    return res.status(500).json({ error: "Server not properly configured for admin login." });
   }
 
-  if (password === process.env.ADMIN_PASSWORD) {
-    const token = jwt.sign({ isAdmin: true }, process.env.JWT_SECRET, {
+  if (password === ADMIN_PASSWORD) {
+    const token = jwt.sign({ isAdmin: true }, JWT_SECRET, {
       expiresIn: "1h",
     });
     res.json({ token });
@@ -107,7 +100,7 @@ app.post("/api/admin/login", (req, res) => {
   }
 });
 
-// ✅ Start the server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
