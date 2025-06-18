@@ -17,20 +17,17 @@ app.get("/", (req, res) => {
   res.send("✅ Backend is working!");
 });
 
-// ✅ Read MONGO_URI from .env
-const MONGO_URI = process.env.MONGO_URI;
+// ✅ Read Mongo URI
+const MONGO_URI = process.env.MONGODB_URI;
 
 if (!MONGO_URI) {
-  console.error("❌ MONGO_URI is not defined in environment variables");
+  console.error("❌ MONGODB_URI is not defined in environment variables");
   process.exit(1);
 }
 
 // ✅ MongoDB connection
 mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
@@ -50,7 +47,7 @@ const Feedback = mongoose.model("Feedback", {
   },
 });
 
-// ✅ POST /api/feedback
+// ✅ POST /api/feedback - Submit feedback
 app.post("/api/feedback", async (req, res) => {
   try {
     const { message } = req.body;
@@ -69,7 +66,7 @@ app.post("/api/feedback", async (req, res) => {
   }
 });
 
-// ✅ GET /api/feedback
+// ✅ GET /api/feedback - View all feedback
 app.get("/api/feedback", async (req, res) => {
   try {
     const feedbackList = await Feedback.find().sort({ createdAt: -1 });
