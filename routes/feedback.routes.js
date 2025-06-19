@@ -30,5 +30,15 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch feedbacks' });
   }
 });
+app.get("/api/feedback", async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find().sort({ createdAt: -1 }); // If using timestamps
+    res.status(200).json({ data: feedbacks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch feedback" });
+  }
+});
+
 
 module.exports = router;
