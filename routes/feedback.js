@@ -4,5 +4,6 @@ const { createFeedback, getAllFeedback } = require('../controllers/feedbackContr
 
 router.post('/feedback', createFeedback);
 router.get('/feedback', getAllFeedback); // we’ll build this next
+router.delete('/:id', deleteFeedback);
 
 module.exports = router;
